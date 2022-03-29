@@ -131,7 +131,7 @@ struct ProductManegementView: View {
                                         productCategolies.SaveProductData()
                                         self.onAlertForDeleteCategoly.toggle()
                                     }
-                                    .frame(width: 100, height: 15)
+                                    .frame(width: 101, height: 15)
                                     .buttonStyle(.borderedProminent)
                                     Spacer()
                                     Button("キャンセル") {

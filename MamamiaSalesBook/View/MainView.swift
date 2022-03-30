@@ -22,7 +22,7 @@ struct MainView: View {
         let fontsize : Double = 30
         
         NavigationView{
-            VStack(spacing: 60){
+            VStack(spacing: 59){
                 Text("Mamamia 売上管理")
 //                    .padding(.bottom, 50)
                     .font(.largeTitle)

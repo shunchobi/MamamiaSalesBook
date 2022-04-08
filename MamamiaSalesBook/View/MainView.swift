@@ -7,58 +7,64 @@
 
 import SwiftUI
 
+
+///
+///
+//アプリ起動時の最初の画面
+///
+///
 struct MainView: View {
-    @ObservedObject public var souldProductAll : SouldProductAll = SouldProductAll()
-    @ObservedObject public var productCategolies : ProductCategolies = ProductCategolies()
-    @ObservedObject public var materialCategolies : MaterialCategolies = MaterialCategolies()
+    
+    //ここで各データをインスタンス化し、他Viewから参照している
+    @ObservedObject public var souldProductAll: SouldProductAll = SouldProductAll()
+    @ObservedObject public var productCategolies: ProductCategolies = ProductCategolies()
+    @ObservedObject public var materialCategolies: MaterialCategolies = MaterialCategolies()
+    
+    //今現在の年月を保持
+    let nowYear: Int = Calendar.current.dateComponents([.year, .month, .day], from: Date()).year!
+    let nowMonth: Int = Calendar.current.dateComponents([.year, .month, .day], from: Date()).month!
     
 
-    init(){
-//        _ = OrderAdditionView(productCategolies: productCategolies, souldProductAll: souldProductAll)
-    }
-    
     var body: some View {
         
         let fontsize : Double = 30
         
         NavigationView{
             VStack(spacing: 59){
+                
+                //タイトル
                 Text("Mamamia 売上管理")
-//                    .padding(.bottom, 50)
                     .font(.largeTitle)
                 
-                NavigationLink(destination: SalesManagementView(souldProductAll: souldProductAll, displaySales: souldProductAll.GetTotalPriceMonthlyForIniti(), displayCost: souldProductAll.GetTotalCostMonthlyForIniti(), dispayProfit:souldProductAll.GetProfitForIniti())){
+                //売り上げ結果を表示
+                NavigationLink(destination: SalesManagementView(
+                    souldProductAll: souldProductAll,
+                    displaySales: souldProductAll.GetTotalSalesMonthly(year: nowYear, month: nowMonth),
+                    displayCost: souldProductAll.GetTotalCostMonthly(year: nowYear, month: nowMonth),
+                    dispayProfit:souldProductAll.GetProfitForIniti())){
                     Text("売上")
                         .font(.system(size: fontsize, weight: .bold, design: .default))
-//                        .padding(20)
-//                        .overlay( RoundedRectangle(cornerRadius: 10)
-//                                    .stroke(Color.red, lineWidth: 4)
-//                        )
                 }
-//                .padding(.bottom, 30)
+                
+                //注文情報を管理する画面を表示
                 NavigationLink(destination: OrderAdditionView(productCategolies: productCategolies, souldProductAll: souldProductAll)){
                     Text("注文管理")
                         .font(.system(size: fontsize, weight: .bold, design: .default))
                 }
-//                .padding(.bottom, 30)
+                
+                //商品情報を管理する画面を表示
                 NavigationLink(destination: ProductManegementView(productCategolies: productCategolies, materialCategolies: materialCategolies)){
                     Text("商品管理")
                         .font(.system(size: fontsize, weight: .bold, design: .default))
                 }
-//                .padding(.bottom, 30)
+                
+                //材料情報を管理する画面を表示
                 NavigationLink(destination: MaterialManegementView(materialCategolies: materialCategolies)){
                     Text("材料管理")
                         .font(.system(size: fontsize, weight: .bold, design: .default))
                 }
                 .padding(.bottom, 150)
             }
-//            .navigationBarTitle(Text("Mamamia売上管理アプリ"))
         }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        MainView()
     }
 }

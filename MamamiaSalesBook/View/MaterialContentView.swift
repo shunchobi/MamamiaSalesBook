@@ -8,24 +8,31 @@
 import SwiftUI
 
 
-
+///
+///
+//新しい商品の登録時、その商品の材料を選択する画面を表示するView
+///
+///
 struct MaterialContentView: View {
     
-    @State var materialCategolies : MaterialCategolies
-//    @State private var selection: Set<aMaterial> = Set()
+    @State var materialCategolies: MaterialCategolies
+    
+    //選択した材料をこの配列へ追加
     @State private var selection: [aMaterial] = []
 
-//    @Environment(\.editMode) var editMode
+    //MaterialContentViewが閉じたかどうかを他Viewに知らせるためのpresentationMode
     @Environment(\.presentationMode) var presentation
-//    var costclass = Cost()
 
+    
     var body: some View {
         
         VStack{
+            //材料のカテゴリーを表示
             List(materialCategolies.list) {categoly in
                 Section(header : HStack{ Text("\(categoly.name)"); Spacer(); Text("原価").font(.subheadline)}){
+                    //材料を表示
                     ForEach(categoly.materials, id: \.self){material in
-                        
+                        //選択可能にするためのボタン
                         Button(action: {
                             selection.append(material)
                         }){
@@ -37,7 +44,6 @@ struct MaterialContentView: View {
                                 Text("\(material.cost)円")
              }}}}}
             .listStyle(SidebarListStyle())
-//            .environment(\.editMode, .constant(.active))
 
             Spacer().frame(height: 20)
             Text("\(selection.count) つのアイテムを選択中")
@@ -45,6 +51,7 @@ struct MaterialContentView: View {
             
             HStack{
            Spacer()
+                //最後に選択した材料を取り消す（操作を一つ戻すためのButto）
                 Button(action: {
                     if selection.count == 0 {
                         return
@@ -57,18 +64,19 @@ struct MaterialContentView: View {
                         .frame(width: 110, height: 25)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                            // 枠線の色をブルーに指定
                             .stroke(Color.red, lineWidth: 2)
                         )
                 }
+                
                 Spacer().frame(width: 20)
+                
                 Button(action: {
-                    Cost.num = 0
-                    Cost.myMaterials.removeAll()
-                    //selected.costの形で選択された要素を取得
+                    CostInfo.cost = 0
+                    CostInfo.myMaterials.removeAll()
+                    //selected.costで選択された要素を取得
                     for selected in selection {
-                        Cost.num += selected.cost
-                        Cost.myMaterials.append(selected)
+                        CostInfo.cost += selected.cost
+                        CostInfo.myMaterials.append(selected)
                     }
                     self.presentation.wrappedValue.dismiss()
                 }){
@@ -89,7 +97,7 @@ struct MaterialContentView: View {
     }
     
     
-    
+    //選択された材料が合計何回選択されているかの数を返すメソッド
     func GetMyCount(me: aMaterial) -> Int{
         var myCount: Int = 0
         let myName = me.name
@@ -108,11 +116,3 @@ struct MaterialContentView: View {
     
 }
 
-
-
-
-//struct MaterialContentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        MaterialContentView()
-//    }
-//}

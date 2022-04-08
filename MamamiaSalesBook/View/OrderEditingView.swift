@@ -8,62 +8,58 @@
 import SwiftUI
 
 
-
+///
+///
+//登録した注文情報の表示と削除を行うView
+///
+///
 struct OrderEditingView: View {
     
-    @ObservedObject var souldProductAll : SouldProductAll //? remove    arrayを使ってForeach回す
+    @ObservedObject var souldProductAll : SouldProductAll
 
+    //カレンダー
     @State private var selectedDate = Date()
-    @State private var selectedYear : Int = Calendar.current.dateComponents([.year, .month, .day], from: Date()).year!
-    @State private var selectedMonth : Int = Calendar.current.dateComponents([.year, .month, .day], from: Date()).month!
-    private let yearRange = [Int](2022...2053)
-    private let monthRange = [Int](1...12)
+    @State private var selectedYear: Int = Calendar.current.dateComponents([.year, .month, .day], from: Date()).year!
+    @State private var selectedMonth: Int = Calendar.current.dateComponents([.year, .month, .day], from: Date()).month!
     
-    @State private var onAlertForYear : Bool = false
-    @State private var onAlertForMonth : Bool = false
-
+    //選択可能な年月のInt値
+    private let yearRange: [Int] = [Int](2022...2053)
+    private let monthRange: [Int] = [Int](1...12)
     
-    private let f = NumberFormatter()
-        
+    //各アラートの表示非表示をBoolで管理
+    @State private var onAlertForYear: Bool = false
+    @State private var onAlertForMonth: Bool = false
 
-//    init(){
-//        let data = Calendar.current.dateComponents([.year, .month, .day], from: selectedDate)
-//        _selectedYear = State(initialValue: data.year!)
-//        _selectedMonth = State(initialValue: data.month!)
-//        f.numberStyle = .none
-//
-//        _array = State(initialValue: self.souldProductAll.GetMonthlyList(year: self.selectedYear, month: self.selectedMonth))
-//    }
-
-    
+    //年月の値をNumberFormatterで変換するためのもの
+    private let numberFormatter = NumberFormatter()
     
     
     var body: some View {
         ZStack{
             VStack{
+                //タイトル
                 Text("編集画面")
                     .font(.largeTitle)
                     .kerning(6)
                 
-                
+                //表示と削除を行いたい年月を指定するButton
                 Spacer().frame(height: 50)
                 HStack{
                     Spacer()
                     Button(action:{ self.onAlertForYear.toggle()}){
-                        Text("\(f.string(from: NSNumber(integerLiteral: self.selectedYear)) ?? "\(self.selectedYear)")年")
+                        Text("\(numberFormatter.string(from: NSNumber(integerLiteral: self.selectedYear)) ?? "\(self.selectedYear)")年")
                             .font(.system(size:30))
                     }
                     Text(".")
                         .font(.system(size:25))
                     Button(action:{ self.onAlertForMonth.toggle()}){
-                        Text("\(f.string(from: NSNumber(integerLiteral: self.selectedMonth)) ?? "\(self.selectedMonth)")月")
+                        Text("\(numberFormatter.string(from: NSNumber(integerLiteral: self.selectedMonth)) ?? "\(self.selectedMonth)")月")
                         .font(.system(size:30))
                     }
                     Spacer()
                 }
                 
-                
-                
+                //指定した年月に登録されている注文商品を表示
                 Spacer()
                 List{
                     Section (header: HStack{
@@ -81,6 +77,7 @@ struct OrderEditingView: View {
                                 Text(String(soldProduct.price)+"円")
                             }
                         }
+                        //スライドで削除
                         .onDelete { indexSet in
                             souldProductAll.list[GetIndeNum()].souldProducts.remove(atOffsets: indexSet)
                             souldProductAll.SaveSoldProductData()
@@ -90,8 +87,7 @@ struct OrderEditingView: View {
                 .frame(height: 480)
             }
             
-            
-            
+            //表示と削除を行いたい年を指定するためのアラート
             if onAlertForYear{
                 NavigationView{
                     VStack{
@@ -111,7 +107,7 @@ struct OrderEditingView: View {
             }
         
         
-        
+            //表示と削除を行いたい月を指定するためのアラート
             if onAlertForMonth{
                 NavigationView{
                     VStack{
@@ -132,31 +128,15 @@ struct OrderEditingView: View {
         }
     }
     
-    
-//    func removeRows(at offsets: IndexSet) {
-////        GetArray().remove(atOffsets: offsets)
-//        let i : Int = Int(offsets)
-//        souldProductAll.RemoveASoldProduct(index: offsets, _year: selectedYear, _month: selectedMonth)
-//    }
-    
-    
+        
+    //指定した年月の注文商品を保持する配列データを返すメソッド
     func GetArray() ->[aSoldProduct]{
         return souldProductAll.GetMonthlyList(year: selectedYear, month: selectedMonth)
     }
     
-    
+    //指定した年月の注文商品を保持する配列データの自身のIndex数値を返すメソッド
     func GetIndeNum() -> Int{
         return souldProductAll.GetIndexNum(_year: selectedYear, _month: selectedMonth)
     }
 }
 
-
-
-
-//
-//
-//struct OrderEditingView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        OrderEditingView()
-//    }
-//}

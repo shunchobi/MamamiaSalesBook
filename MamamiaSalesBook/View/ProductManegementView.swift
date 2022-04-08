@@ -7,42 +7,58 @@
 
 import SwiftUI
 
-
-class Cost{
-    static var num : Int = 0
+///
+///
+//新しい商品を追加する際、その商品の材料を登録するときに
+//MaterialContentViewから各値が変更される
+///
+///
+class CostInfo{
+    static var cost : Int = 0
     static var myMaterials : [aMaterial] = []
-    
 }
 
 
+
+///
+///
+//商品情報を表示、登録、削除などの管理を行うView
+///
+///
 struct ProductManegementView: View {
     
-    @ObservedObject var productCategolies : ProductCategolies
-    @ObservedObject var materialCategolies : MaterialCategolies
-
+    @ObservedObject var productCategolies: ProductCategolies
+    @ObservedObject var materialCategolies: MaterialCategolies
     
-    @State var onAlertForAddCategoly = false
-    @State var onAlertForAddProduct = false
-    @State var onAlertForDeleteCategoly = false
-    @State var newCategolyName = ""
-    @State var newProductName = ""
-    @State var newProductPrice = ""
-    @State var newProductCost = "0"
-    @State var actionedCategolyButton = ""
-    @State var Index = 0
+    //各アラートの表示非表示をBoolで管理
+    @State var onAlertForAddCategoly: Bool = false
+    @State var onAlertForAddProduct: Bool = false
+    @State var onAlertForDeleteCategoly: Bool = false
     
-    @FocusState var focus:Bool
-    @State var isEnableCategolyAddButton : Bool = false
-    @State var isEnableProductAddButton : Bool = false
-    @State var isShowingView : Bool = false
+    //新しい商品を追加するときに必要な商品情報
+    @State var newCategolyName: String = ""
+    @State var newProductName: String = ""
+    @State var newProductPrice: String = ""
+    @State var newProductCost: String = "0"
+    @State var actionedCategolyButton: String = ""
     
+    //キーボード上に表示されているキャンセルボタンで、ユーザーからのアクションを受け取る
+    //キャンセルボタンが押されればFalseになり、キーボードが閉じる
+    @FocusState var cancelButtonOnKeyboard: Bool
+    
+    //既に追加されている商品で登録されている材料が現在表示されているかどうかを管理
+    @State var isShowingMyMaterialsView: Bool = false
+    
+    //商品カテゴリーを削除する際に、一度このwillDeleteCategolyに対象のカテゴリーを入れる
     @State var willDeleteCategoly: aProductCategoly? = nil
+    
     
     var body: some View {
         ZStack {
             
           NavigationView {
             List {
+                //登録されているカテゴリーを表示
                 ForEach (productCategolies.list){categoly in
                     Section(header : HStack{
                         Text("\(categoly.name)")
@@ -57,7 +73,6 @@ struct ProductManegementView: View {
                     },footer : HStack{
                         Spacer();
                         Button("Add", action:{
-//                            categolyIndex = categoly.index
                             actionedCategolyButton = categoly.name
                             self.onAlertForAddProduct.toggle()
                         })
@@ -65,9 +80,11 @@ struct ProductManegementView: View {
                         Spacer()
                     })
                     {
+                        //登録されている商品をカテゴリーごとに表示
                         ForEach(categoly.products) {product in
+                            //MyMaterialsView(自身の登録されている材料を表示するView)を表示するためのButton
                             Button(action: {
-                                isShowingView.toggle()
+                                isShowingMyMaterialsView.toggle()
                             }){
                                 HStack{
                                     Text(product.name)
@@ -75,34 +92,28 @@ struct ProductManegementView: View {
                                     Text("\(product.cost)円 / \(product.price)円 >")
                                 }
                             }
-                            .sheet(isPresented: $isShowingView) {
+                            .sheet(isPresented: $isShowingMyMaterialsView) {
                                 MyMaterialsView(product: product)
                             }
                         }
+                        //スライドで削除可能
                         .onDelete { indexSet in
                             productCategolies.list[categoly.index].products.remove(atOffsets: indexSet)
                             productCategolies.SaveProductData()
                         }
                 }
               }
-                //Delete Categoly
-//                .onDelete { indexSet in
-//                    productCategolies.list.remove(atOffsets: indexSet)
-//                    for i in 0..<productCategolies.list.count{
-//                        productCategolies.list[i].ChangeIndex(_index: productCategolies.list.count - 1)
-//                        productCategolies.SaveProductData()
-//                    }
-//                }
             }
             .navigationTitle("商品管理")
             .listStyle(SidebarListStyle())
+              //カテゴリーを追加するためのButtonをツールバーに追加
             .toolbar {Button(action:{ self.onAlertForAddCategoly.toggle() }){ Text("カテゴリー追加＋") }}
           }
           .navigationBarTitleDisplayMode(.inline)
           .navigationBarBackButtonHidden(false)
             
             
-            
+            //カテゴリーを削除する際に表示されるアラート
             if onAlertForDeleteCategoly {
                 NavigationView{
                     ZStack() {
@@ -115,6 +126,7 @@ struct ProductManegementView: View {
                                 Spacer()
                                 HStack {
                                     Spacer()
+                                    //ユーザーがOKを選択で、productCategolies.listで保持されているカテゴリーを削除
                                     Button("OK") {
                                         let deleteName: String = willDeleteCategoly!.name
                                         for i in 0..<productCategolies.list.count{
@@ -134,6 +146,7 @@ struct ProductManegementView: View {
                                     .frame(width: 101, height: 15)
                                     .buttonStyle(.borderedProminent)
                                     Spacer()
+                                    //ユーザーがキャンセルを選択で、アラートを閉じる
                                     Button("キャンセル") {
                                         self.onAlertForDeleteCategoly.toggle()
                                     }
@@ -144,9 +157,6 @@ struct ProductManegementView: View {
                                 }
                                 Spacer()
                             }.padding()
-//                            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
-//                                AddCategolyButtonAvariable()
-//                            }
                     }
                     .frame(width: 300, height: 180,alignment: .center)
                     .cornerRadius(20).shadow(radius: 20)
@@ -158,7 +168,7 @@ struct ProductManegementView: View {
             
             
     
-
+            //商品を追加する際に表示されるアラート
             if onAlertForAddProduct {
                 NavigationView{
                     ZStack() {
@@ -181,16 +191,13 @@ struct ProductManegementView: View {
                                 Spacer().frame(height: 30)
                                 HStack {
                                     Spacer()
+                                    //ユーザーがOKを選択で、キーボードから入力された商品情報を登録し、新しくaProductを生成し配列データへ追加する
                                     Button("OK") {
                                         for i in 0..<productCategolies.list.count{
                                             if(productCategolies.list[i].name == self.actionedCategolyButton){
-                                                var newProduct = aProduct(_name:newProductName, _price:Int(newProductPrice) ?? 0, _cost:Cost.num, _index: productCategolies.list[i].products.count)
+                                                var newProduct = aProduct(_name:newProductName, _price:Int(newProductPrice) ?? 0, _cost:CostInfo.cost, _index: productCategolies.list[i].products.count)
                                                 
-                                                ///ここでしっかり渡せられているか？
-                                                newProduct.myMaterials = Cost.myMaterials
-                                                ///
-                                                
-//                                                productCategolies.list[i].products.append(newProduct)
+                                                newProduct.myMaterials = CostInfo.myMaterials
                                                 productCategolies.AddProduct(index: i, product: newProduct)
                                             }
                                         }
@@ -200,13 +207,14 @@ struct ProductManegementView: View {
                                         newProductName = ""
                                         newProductPrice = ""
                                         newProductCost = "0"
-                                        Cost.num = 0
-                                        Cost.myMaterials = []
+                                        CostInfo.cost = 0
+                                        CostInfo.myMaterials = []
                                     }
                                     .frame(width: 100, height: 15)
                                     .buttonStyle(.borderedProminent)
                                     .disabled(!AddProductButtonAvariable)
                                     Spacer()
+                                    //ユーザーがキャンセルを選択で、アラートを閉じる
                                     Button("キャンセル") {
                                         self.onAlertForAddProduct.toggle()
                                         self.actionedCategolyButton = ""
@@ -214,8 +222,8 @@ struct ProductManegementView: View {
                                         newProductName = ""
                                         newProductPrice = ""
                                         newProductCost = "0"
-                                        Cost.num = 0
-                                        Cost.myMaterials = []
+                                        CostInfo.cost = 0
+                                        CostInfo.myMaterials = []
                                     }
                                     .frame(width: 150, height: 15)
                                     .buttonStyle(.borderedProminent)
@@ -227,13 +235,13 @@ struct ProductManegementView: View {
                             .padding()
                             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
                             }
-                            .focused(self.$focus)
+                            .focused(self.$cancelButtonOnKeyboard)
                             .toolbar{
                                 ToolbarItem(placement: .keyboard){
                                     HStack{
                                         Spacer()
                                         Button("Close"){
-                                            self.focus = false
+                                            self.cancelButtonOnKeyboard = false
                              }}}}
                     }
                     .frame(width: 300, height: 220,alignment: .center)
@@ -243,9 +251,8 @@ struct ProductManegementView: View {
                 .navigationBarBackButtonHidden(true)
             }
             
-            
-
-            
+    
+            //カテゴリーを追加する際に表示されるアラート
             if onAlertForAddCategoly {
                 NavigationView{
                     ZStack() {
@@ -256,17 +263,18 @@ struct ProductManegementView: View {
                                 TextField("新しいカテゴリー名",text: $newCategolyName)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .padding()
-                                    .focused(self.$focus)
+                                    .focused(self.$cancelButtonOnKeyboard)
                                     .toolbar{
                                         ToolbarItem(placement: .keyboard){
                                             HStack{
                                                 Spacer()
                                                 Button("Close"){
-                                                    self.focus = false
+                                                    self.cancelButtonOnKeyboard = false
                                      }}}}
                                 Spacer()
                                 HStack {
                                     Spacer()
+                                    //ユーザーがOKを選択で、キーボードから入力されたカテゴリー名を登録し、新しいカテゴリーを生成し配列データへ追加する
                                     Button("OK") {
                                         productCategolies.AddCategoly(_categolyName: newCategolyName, _indexNum: productCategolies.list.count)
                                         self.onAlertForAddCategoly.toggle()
@@ -287,9 +295,6 @@ struct ProductManegementView: View {
                                 }
                                 Spacer()
                             }.padding()
-//                            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
-//                                AddCategolyButtonAvariable()
-//                            }
                     }
                     .frame(width: 300, height: 180,alignment: .center)
                     .cornerRadius(20).shadow(radius: 20)
@@ -301,27 +306,20 @@ struct ProductManegementView: View {
     }
     
     
+    //新しいカテゴリーを生成する際に、カテゴリー名がキーボードから入力されているかどうかをBool値で返す
     var AddCategolyButtonAvariable: Bool{
         newCategolyName != ""
     }
     
-    
-    var AddProductButtonAvariable:Bool{
-        newProductName != "" && newProductPrice != "" && Cost.num != 0
+    //新しい商品を生成する際に、商品の各情報がキーボードから入力されているかどうかをBool値で返す
+    var AddProductButtonAvariable: Bool{
+        newProductName != "" && newProductPrice != "" && CostInfo.cost != 0
     }
     
+    //新しい商品を生成する際に、選択した材料費をこのメソッドで商品情報のnewProductCostへ値を代入
     func ChageNewProductCostNum(){
-        newProductCost = String(Cost.num)
+        newProductCost = String(CostInfo.cost)
     }
 
 }
 
-
-
-
-//
-//struct ProductManegementView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ProductManegementView(viewModel: <#ProductCategolies#>)
-//    }
-//}

@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+
+///
+///
+//選択した商品に登録されている材料を表示するView
+///
+///
 struct MyMaterialsView: View {
     
+    //選択されている商品
     let product : aProduct
-    
     
     var body: some View {
         List{
@@ -25,6 +31,7 @@ struct MyMaterialsView: View {
                 }
                 Spacer()
             }){
+                //材料を表示
                 ForEach(product.myMaterials){material in
                     HStack{
                         Text(material.name)
@@ -39,9 +46,3 @@ struct MyMaterialsView: View {
     }
 
 }
-
-//struct MyMaterialsView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        MyMaterialsView()
-//    }
-//}

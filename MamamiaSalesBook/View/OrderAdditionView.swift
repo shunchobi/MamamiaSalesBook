@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 enum TextGuide: String {
     case noCategoly = "選択できるカテゴリーがありません"
     case noProduct = "選択できる商品がありません"
@@ -15,39 +16,42 @@ enum TextGuide: String {
 }
 
 
-
+///
+///
+//注文情報の登録を行うView
+///
+///
 struct OrderAdditionView: View {
     
     @ObservedObject var productCategolies : ProductCategolies
     @ObservedObject var souldProductAll : SouldProductAll
     
+    //日付を指定するためのカレンダー
     @State private var selectionDate = Date()
+    
+    //登録する注文された商品の情報
     @State private var selectedProductCategoly: aProductCategoly = aProductCategoly(_name: "none", _index: 0)
     @State private var selectedProduct: aProduct = aProduct(_name: "none", _price: 0, _cost: 0, _index: 0)
-    @State private var selectedShipmentCost = ""
-    @State private var selectedWrappingCost = ""
+    @State private var selectedShipmentCost: String = ""
+    @State private var selectedWrappingCost: String = ""
     
-    @State var isEnableAddButton : Bool = false
-    @State var previousSelectedProduct : String = ""
+    //登録する商品の情報がすべて入力されているかどうかを返すBool値
+    @State var isEnableAddButton: Bool = false
+    
+    //登録する際に選んだ商品の名前を保持
+    @State var previousSelectedProduct: String = ""
 
-    @FocusState var focus:Bool
+    //キーボード上に表示されているキャンセルボタンで、ユーザーからのアクションを受け取る
+    //キャンセルボタンが押されればFalseになり、キーボードが閉じる
+    @FocusState var cancelButtonOnKeyboard: Bool
 
+    //OrderEditingViewを表示中かどうかを返すBool値
     @State private var isShowingView: Bool = false
-        
-    
-//    var dateFormat: DateFormatter {
-//      let format = DateFormatter()
-//        format.dateStyle = .full // .full | .long | .medium | .short | .none
-//        format.dateFormat = "yyyy-MM-dd"
-//      return format
-//    }
-    
     
     
     var body: some View {
-
-        
         VStack{
+            //登録する注文の日付を入力
             List {
                 Section(header:Text("日付").font(.subheadline)){
                     HStack{
@@ -56,15 +60,9 @@ struct OrderAdditionView: View {
                         DatePicker("タイトル",selection: $selectionDate,displayedComponents: [.date])
                         .labelsHidden()
                     }
-//                  Spacer()
-//                  DatePicker("タイトル",selection: $selectionDate,displayedComponents: [.date])
-//                  .labelsHidden()
-//                  .datePickerStyle(WheelDatePickerStyle())
-//                  .frame(width: 198, height: 100)
-//                  Spacer()
-
                 }
 
+                //登録する商品を選択
                 Section(header:Text("商品選択").font(.subheadline)){
                     Picker(GetGuideText(isFromCategoly : true), selection: $selectedProductCategoly) {
                         ForEach(productCategolies.list, id: \.self) { category in
@@ -89,6 +87,7 @@ struct OrderAdditionView: View {
                     }
                 }
                 
+                //登録する送料と梱包日を入力
                 Section(header:Text("雑費").font(.subheadline)){
                     HStack{
                         Text("送料")
@@ -98,13 +97,13 @@ struct OrderAdditionView: View {
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
-                            .focused(self.$focus)
+                            .focused(self.$cancelButtonOnKeyboard)
                             .toolbar{
                                 ToolbarItem(placement: .keyboard){
                                     HStack{
                                         Spacer()
                                         Button("Close"){
-                                            self.focus = false
+                                            self.cancelButtonOnKeyboard = false
                                             AddButtonAvariable()
                              }}}}
 
@@ -116,13 +115,14 @@ struct OrderAdditionView: View {
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
-                            .focused(self.$focus)
+                            .focused(self.$cancelButtonOnKeyboard)
 
                         Text("円")
                     }
                 }
 
                 
+                //入力した注文情報もとにaSoldProductを生成してデータ配列へ追加
                 Section{
                     HStack{
                         Spacer()
@@ -162,7 +162,7 @@ struct OrderAdditionView: View {
                     
                 }
 
-                
+                //登録されている注文商品を表示、削除するためのViewを表示
                 Section{
                     HStack{
                         Spacer()
@@ -187,7 +187,8 @@ struct OrderAdditionView: View {
         }
     }
 
-    func GetGuideText(isFromCategoly : Bool) -> String{
+    //TextGuide enumから文字列を取得
+    func GetGuideText(isFromCategoly: Bool) -> String{
         var result = ""
         if productCategolies.list.count > 0{
             if isFromCategoly {result = TextGuide.chooseCategoly.rawValue}
@@ -197,24 +198,18 @@ struct OrderAdditionView: View {
             if isFromCategoly {result = TextGuide.noCategoly.rawValue}
             if !isFromCategoly {result = TextGuide.noProduct.rawValue}
         }
-         
         return result
     }
     
+    //注文商品の情報が全て入力されているかどうかのBool値をisEnableAddButtonへ代入
     func AddButtonAvariable(){
         isEnableAddButton = InputFeildIsFilled() ? true : false
     }
     
+    //注文商品の情報が全て入力されているかどうかのBool値を返す
     func InputFeildIsFilled() -> Bool{
         return selectedShipmentCost != "" && selectedWrappingCost != "" &&
         selectedProductCategoly.name != "none" && selectedProduct.name != "none"
     }
 }
 
-
-
-//struct OrderManegementView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        OrderAdditionView()
-//    }
-//}
